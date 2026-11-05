@@ -1,3 +1,23 @@
-nbproject
-node_modules
-**/.tmp
+# Dependencies and package-manager state
+node_modules/
+
+# Generated distributions and documentation
+/artifacts/
+/package/
+
+# Build staging and temporary files
+*.py[cod]
+.tmp/
+/.go-numbers-build-*/
+/.superpowers/
+__pycache__/
+temp/
+
+# Coverage and local test results
+/coverage/
+
+# Package archives
+*.tgz
+
+# Editor and operating-system files
+.DS_Store

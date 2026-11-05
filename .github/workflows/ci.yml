@@ -1,0 +1,134 @@
+name: Verify library
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '8.0.0'
+      - name: Retain exact CommonJS runtime
+        run: node -e "require('fs').appendFileSync(process.env.GITHUB_ENV, 'NODE8_BIN=' + process.execPath + '\n')"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '12.17.0'
+      - name: Retain exact native ESM runtime
+        run: node -e "require('fs').appendFileSync(process.env.GITHUB_ENV, 'NODE_ESM_BIN=' + process.execPath + '\n')"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '13.2.0'
+      - name: Retain flagged Node 13 ESM floor
+        run: node -e "require('fs').appendFileSync(process.env.GITHUB_ENV, 'NODE13_ESM_BIN=' + process.execPath + '\n')"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '13.7.0'
+      - name: Retain unflagged Node 13 ESM floor
+        run: node -e "require('fs').appendFileSync(process.env.GITHUB_ENV, 'NODE13_UNFLAGGED_ESM_BIN=' + process.execPath + '\n')"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '13.0.0'
+      - name: Retain pre-conditional-exports runtime
+        run: node -e "require('fs').appendFileSync(process.env.GITHUB_ENV, 'NODE13_BIN=' + process.execPath + '\n')"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24.x'
+          cache: npm
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.13'
+      - run: npm ci --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium firefox webkit
+      - run: npm run verify:all
+      - name: Regenerate documentation and reject drift
+        run: npm run docs && git diff --exit-code -- README.md docs/API.md
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: verified-candidate
+          path: artifacts/go-numbers-*.tgz*
+          if-no-files-found: error
+  consumers:
+    needs: candidate
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: [22.x, 24.x]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '8.0.0'
+      - name: Retain exact CommonJS runtime
+        run: node -e "require('fs').appendFileSync(process.env.GITHUB_ENV, 'NODE8_BIN=' + process.execPath + '\n')"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '12.17.0'
+      - name: Retain exact native ESM runtime
+        run: node -e "require('fs').appendFileSync(process.env.GITHUB_ENV, 'NODE_ESM_BIN=' + process.execPath + '\n')"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '13.2.0'
+      - name: Retain flagged Node 13 ESM floor
+        run: node -e "require('fs').appendFileSync(process.env.GITHUB_ENV, 'NODE13_ESM_BIN=' + process.execPath + '\n')"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '13.7.0'
+      - name: Retain unflagged Node 13 ESM floor
+        run: node -e "require('fs').appendFileSync(process.env.GITHUB_ENV, 'NODE13_UNFLAGGED_ESM_BIN=' + process.execPath + '\n')"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: verified-candidate
+          path: artifacts
+      - name: Verify transferred candidate on every consumer gate
+        run: node scripts/test-transferred-candidate.js
+  typescript:
+    needs: candidate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        typescript: ['3.3.4000', '5.8.3']
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24.x'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: verified-candidate
+          path: artifacts
+      - name: Install the selected compiler outside the checkout
+        run: npm install --prefix "${{ runner.temp }}/compiler" --ignore-scripts --no-save --package-lock=false typescript@${{ matrix.typescript }}
+      - name: Check the exact candidate with shared compiler contracts
+        env:
+          COMPILER_PATH: ${{ runner.temp }}/compiler/node_modules/typescript/lib/tsc.js
+        run: >-
+          node -e "const path = require('node:path');
+          const metadata = require('./package.json');
+          const archive = path.resolve('artifacts', metadata.name + '-' + metadata.version + '.tgz');
+          require('./scripts/package-consumer').withPackedPackage(({ directory }) =>
+          require('./scripts/test-types-compat')({ compiler: process.env.COMPILER_PATH,
+          directory: path.join(directory, 'node_modules', metadata.name) }), archive);"

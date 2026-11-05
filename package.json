@@ -1,24 +1,74 @@
 {
-    "name": "go-numbers",
-    "description": "Number utilities",
-    "author": "Michael Ko",
-    "email": "koyote130708@gmail.com",
-    "version": "0.0.1",
-    "license": "GNU LGPLv3",
-    "keywords": ["number", "utilities"],
-    "main": "index.js",
-    "scripts": {
-        "test": "mocha -u tdd test/NumbersTest.js",
-		"test-coverage": "nyc --reporter=html mocha -u tdd test/NumbersTest.js",
-        "doc": "documentation build src/Numbers.js -f md -o README.md",
-        "doc-html": "documentation build src/Numbers.js -f html -o docs"
-    },
-    "dependencies": {
-    },
-    "devDependencies": {
-        "chai": "^3.5.0",
-        "mocha": "^3.1.2",
-        "documentation": "^13.2.5"
-    },
-    "engine": "node >= 0.10"
+  "name": "go-numbers",
+  "version": "0.3.6",
+  "private": true,
+  "description": "Non-coercing numeric validation, explicit parsing, range handling, decimal rounding, and approximate comparison.",
+  "license": "MIT",
+  "author": {
+    "name": "Michael Ko",
+    "email": "koyote130708@gmail.com"
+  },
+  "keywords": [
+    "number",
+    "numeric",
+    "utilities",
+    "validation",
+    "parsing"
+  ],
+  "homepage": "https://github.com/koyote130708/go-numbers",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/koyote130708/go-numbers.git"
+  },
+  "type": "commonjs",
+  "engines": {
+    "node": ">=22.16.0"
+  },
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "scripts": {
+    "build": "node scripts/build.js",
+    "docs": "node scripts/docs.js",
+    "pack:package": "node scripts/pack-package.js",
+    "lint": "eslint . --max-warnings 0",
+    "lint:fix": "eslint . --fix --max-warnings 0",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
+    "test": "node scripts/test.js",
+    "test:docs": "node scripts/docs.js --check && node --test scripts/test-docs.js test/docs.test.js",
+    "test:types": "node scripts/test-types.js",
+    "test:build": "node --test test/build.test.js && node --test scripts/test-build-falsy.js",
+    "test:tooling": "node --test test/tooling.test.js test/oracle-generator.test.js",
+    "test:artifacts": "node scripts/test-artifacts.js && node --test scripts/test-browser-bundles.cjs",
+    "test:runtime": "node scripts/test-compatibility.js",
+    "test:tree-shaking": "node scripts/test-tree-shaking.js",
+    "test:package": "node scripts/test-package.js",
+    "test:browser": "node scripts/test-browser-distribution.cjs",
+    "test:differential": "node scripts/test-differential.js",
+    "test:mutations": "node scripts/test-mutations.js",
+    "test:oracle": "npm run test:oracle:verifier && node scripts/run-python.js scripts/check-numeric-oracle.py",
+    "test:oracle:verifier": "node scripts/run-python.js -m unittest test/oracle_verifier_test.py test/python_launcher_test.py",
+    "test:scenarios": "node --test test/scenarios-*.test.js",
+    "test:syntax": "node scripts/test-syntax.js",
+    "coverage": "npm test -- --experimental-test-coverage --test-coverage-include=index.js --test-coverage-include=index.mjs --test-coverage-include=\"src/**/*.js\" --test-coverage-exclude=\"src/**/temp/**\" --test-coverage-exclude=\"src/**/.tmp/**\" --test-coverage-lines=100 --test-coverage-functions=100 --test-coverage-branches=100",
+    "verify": "node scripts/verify.js",
+    "verify:all": "node scripts/verify.js --all",
+    "benchmark": "node scripts/benchmark.js",
+    "benchmark:compare": "node scripts/benchmark-compare.js",
+    "prepack": "node scripts/reject-root-package.js",
+    "prepublishOnly": "node scripts/reject-root-package.js"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "esbuild": "0.25.5",
+    "eslint": "10.11.0",
+    "globals": "16.5.0",
+    "playwright": "1.57.0",
+    "prettier": "3.9.6",
+    "typescript": "5.8.3",
+    "typescript-eslint": "8.70.1"
+  },
+  "overrides": {
+    "minimatch@<11.0.1": "11.0.4"
+  }
 }

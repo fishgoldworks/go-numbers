@@ -1,0 +1,29 @@
+# Dependencies and package-manager state
+node_modules/
+
+# Generated distributions and documentation
+/README.md
+/artifacts/
+/docs/API.md
+/package/
+
+# Build staging and temporary files
+*.py[cod]
+.tmp/
+/.go-numbers-build-*/
+/.superpowers/
+__pycache__/
+temp/
+
+# Coverage and local test results
+/coverage/
+
+# Lockfiles
+/package-lock.json
+
+# Historical records and third-party material
+/LICENSE.md
+/docs/performance.md
+
+# Editor and operating-system files
+.DS_Store

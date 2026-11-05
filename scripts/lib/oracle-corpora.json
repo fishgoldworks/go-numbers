@@ -1,0 +1,27 @@
+{
+  "formatVersion": 1,
+  "families": {
+    "lcg": {
+      "count": 50520,
+      "operations": {
+        "round": 9992,
+        "ceil": 9992,
+        "floor": 9992,
+        "roundTo": 10272,
+        "modulo": 10272
+      },
+      "inputSha256": "cf3c9fb85eebb919d0bf925561b6dc6ba82b138f5c5ae3111bac80b24978fb19"
+    },
+    "sha256": {
+      "count": 50545,
+      "operations": {
+        "round": 9997,
+        "ceil": 9997,
+        "floor": 9997,
+        "roundTo": 10277,
+        "modulo": 10277
+      },
+      "inputSha256": "4a28cd65c74eff757f801be7affc4c8036ae53d81d8b6f255109cc40929feefd"
+    }
+  }
+}
